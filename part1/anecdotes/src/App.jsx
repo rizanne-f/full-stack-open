@@ -25,11 +25,14 @@ const App = () => {
 
   return (
     <div>
-      <div><em>{anecdotes[selected]}</em></div>
+      <h1>Anecdote of the day</h1>
+      <p>{anecdotes[selected]}</p>
       <button onClick={handleVoteClick}>Vote {anecdotesVote[selected]}</button>
       <button onClick={() => setSelected(Math.ceil(Math.random() * 8) - 1)}>
         Next Anecdote
       </button>
+      <h2>Anecdote with most votes</h2>
+      <p>{anecdotes[anecdotesVote.indexOf(Math.max(...anecdotesVote))]}</p>
     </div>
   )
 
