@@ -3,6 +3,7 @@ const Header = (props) => <h1>{props.course}</h1>
 const Content = (props) => (
     <div>
         {props.parts.map(item => <Part key={item.id} part={item}/>)}
+        <b>Total of {props.parts.reduce((sum, item) => sum + item.exercises, 0)} exercises</b>
     </div>
 )
 
