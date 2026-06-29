@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
-import axios from 'axios'
 import Filter from "./components/Filter"
 import PersonForm from "./components/PersonForm"
 import Persons from "./components/Persons"
+import personsService from './services/persons.js'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -10,17 +10,41 @@ const App = () => {
   const [searchValue, setSearch] = useState('')
 
   useEffect(() => {
-    axios.get('http://localhost:3001/persons').then(response => (
-      setPersons(response.data)
-    ))
+    personsService
+      .getAll()
+      .then(initialPersons => setPersons(initialPersons))
   }, [])
 
   const addPerson = (event) => {
     event.preventDefault()
 
-    persons.map(person => person.name).includes(newContact.name)
-    ? alert(`${newContact.name} is already added to phonebook`) 
-    : setPersons(persons.concat(newContact))
+    const existingContact = persons.find(person => person.name === newContact.name)
+    const newObject = { ...existingContact, number: newContact.number }
+
+    if (persons.map(person => person.name).includes(newContact.name)) {
+      const updatedContact = confirm(
+        `${newContact.name} is already added to phonebook, replace the old number with a new one?`
+      )
+
+      if (updatedContact) {
+        personsService
+          .update(existingContact.id, newObject).then(updatedPerson => (
+            setPersons(persons.map(
+              person => person.id === existingContact.id
+              ? updatedPerson
+              : person)
+            ) 
+          )).catch(() => {
+            alert(`${existingContact.name} is already deleted from server`)
+            setPersons(persons.filter(p => p.id !== existingContact.id))
+          })
+      }
+    } else {
+      personsService
+        .create(newContact)
+        .then(insertedContact => setPersons(persons.concat(insertedContact)))
+    }
+
     setNewContact({name: '', number: ''})
   }
 
@@ -34,6 +58,22 @@ const App = () => {
 
   const handleSearch = (event) => {
     setSearch(event.target.value.toLowerCase())
+  }
+
+  const handleDeletePerson = (person) => () => {
+    const updatedPersons = persons.filter(p => p.id !== person.id)
+    
+    if (confirm(`Delete ${person.name}?`)) {
+      setPersons(updatedPersons)
+
+      personsService
+        .deletePerson(person.id).then(response => {
+          console.log(response)
+        }).catch(() => {
+          alert(`${person.name} is already deleted from server`)
+          setPersons(persons.filter(p => p.id !== person.id))
+        })
+    }
   }
 
   const filteredPersons = searchValue
@@ -54,7 +94,9 @@ const App = () => {
     />
 
     <h3>Numbers</h3>
-    <Persons filteredPersons={filteredPersons}/>
+    <Persons
+      filteredPersons={filteredPersons}
+      handleDeletePerson={handleDeletePerson}/>
   </div>
 
 }
