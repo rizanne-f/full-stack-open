@@ -2,18 +2,32 @@ import { useState, useEffect } from "react"
 import Filter from "./components/Filter"
 import PersonForm from "./components/PersonForm"
 import Persons from "./components/Persons"
-import personsService from './services/persons.js'
+import personsService from "./services/persons.js"
+import Notification from "./components/Notification.jsx"
+import './index.css'
 
 const App = () => {
-  const [persons, setPersons] = useState([])
+  const [persons, setPersons] = useState(null)
   const [newContact, setNewContact] = useState({name: '', number: ''})
   const [searchValue, setSearch] = useState('')
+  const [notif, setNotif] = useState({message: null, isError: true})
 
   useEffect(() => {
     personsService
       .getAll()
-      .then(initialPersons => setPersons(initialPersons))
+      .then(initialPersons => {
+        setPersons(initialPersons)
+      })
   }, [])
+
+  // do not render anything if notes is null
+  if (!persons) { return null }
+
+  const clearNotif = () => {
+    setTimeout(() => {
+      setNotif({ message: null, isError: false })
+    }, 5000)
+  }
 
   const addPerson = (event) => {
     event.preventDefault()
@@ -28,14 +42,23 @@ const App = () => {
 
       if (updatedContact) {
         personsService
-          .update(existingContact.id, newObject).then(updatedPerson => (
+          .update(existingContact.id, newObject).then(updatedPerson => {
             setPersons(persons.map(
               person => person.id === existingContact.id
               ? updatedPerson
               : person)
-            ) 
-          )).catch(() => {
-            alert(`${existingContact.name} is already deleted from server`)
+            )
+            setNotif({
+              message: `${existingContact.name} was updated to ${newContact.number}.`,
+              isError: false
+            })
+            clearNotif()
+          }).catch(() => {
+            setNotif({
+              message: `Information of ${existingContact.name} has already been removed from server.`,
+              isError: true
+            })
+            clearNotif()
             setPersons(persons.filter(p => p.id !== existingContact.id))
           })
       }
@@ -43,6 +66,12 @@ const App = () => {
       personsService
         .create(newContact)
         .then(insertedContact => setPersons(persons.concat(insertedContact)))
+
+      setNotif({
+        message: `Added ${newContact.name}.`,
+        isError: false
+      })
+      clearNotif()
     }
 
     setNewContact({name: '', number: ''})
@@ -68,9 +97,17 @@ const App = () => {
 
       personsService
         .deletePerson(person.id).then(response => {
-          console.log(response)
+          setNotif({
+            message: `${response.name} is deleted from server.`,
+            isError: false
+          })
+          clearNotif()
         }).catch(() => {
-          alert(`${person.name} is already deleted from server`)
+          setNotif({
+            message: `${person.name} is already deleted from server.`,
+            isError: true
+          })
+          clearNotif()
           setPersons(persons.filter(p => p.id !== person.id))
         })
     }
@@ -83,6 +120,7 @@ const App = () => {
 
   return <div>
     <h2>Phonebook</h2>
+    <Notification notif={notif}/>
     <Filter handleSearch={handleSearch}/>
 
     <h3>Add a new contact</h3>
