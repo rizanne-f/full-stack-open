@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
     { 
       "id": "1",
@@ -45,6 +47,34 @@ app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id
     persons = persons.filter(p => p.id !== id)
     response.status(204).end()
+})
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+    
+    if (!body.name || !body.number) {
+        return response.status(400).json({
+            error: "Missing required fields"
+        })
+    }
+    
+    const isDuplicate = persons.map(p => p.name.toLowerCase())
+        .includes(request.body.name.toLowerCase())
+    
+    if (isDuplicate) {
+        return response.status(409).json({
+            error: "Name must be unique"
+        })
+    }
+
+    const newPerson = {
+        id: Math.ceil(Math.random() * 1_000_000),
+        name: body.name,
+        number: body.number
+    }
+
+    persons = persons.concat(newPerson)
+    response.status(201).json(newPerson)
 })
 
 app.get('/info', (request, response) => {
