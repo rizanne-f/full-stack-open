@@ -28,6 +28,19 @@ app.get('/api/persons', (request, response) => {
     response.json(persons)
 })
 
+app.get('/api/persons/:id', (request, response) => {
+    const id = request.params.id
+    const person = persons.find(p => p.id === id)
+
+    if (!person) {
+        return response.status(404).json({
+            error: `No person with id ${id} is found.`
+        })
+    }
+
+    response.status(200).json(person)
+})
+
 app.get('/info', (request, response) => {
     response.send(`
         <div>Phonebook has info for ${persons.length} people</div>
