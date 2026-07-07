@@ -1,0 +1,17 @@
+{
+  "name": "phonebook",
+  "version": "0.0.1",
+  "description": "fullstackopen part 3 phonebook REST API exercise",
+  "license": "MIT",
+  "author": "Rizanne Fernandez",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
