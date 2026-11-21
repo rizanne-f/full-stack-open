@@ -99,6 +99,24 @@ app.post('/api/persons', (request, response) => {
     })
 })
 
+// update person entry
+app.put('/api/persons/:id', (request, response) => {
+    const { name, number } = request.body
+
+    Person.findById(request.params.id)
+        .then(person => {
+            if (!person) {
+                return response.status(404).end()
+            }
+            
+            person.number = number
+
+            return person.save().then(updatedPerson => {
+                response.json(updatedPerson)
+            })
+        })
+})
+
 app.get('/info', (request, response) => {
     response.send(`
         <div>Phonebook has info for ${persons.length} people</div>
