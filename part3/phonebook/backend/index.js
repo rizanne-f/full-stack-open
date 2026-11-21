@@ -99,10 +99,13 @@ app.put('/api/persons/:id', (request, response) => {
 
 // return info page
 app.get('/info', (request, response) => {
-    response.send(`
-        <div>Phonebook has info for ${persons.length} people</div>
-        <div>${new Date()}</div>
-    `)
+    Person.countDocuments({})
+        .then(count => {
+            const label = count === 1 ? '1 person' : `${count} people`
+            response.send(
+                `<div>Phonebook has info for ${label}</div><div>${new Date()}</div>`
+            )
+        })
 })
 
 // error handler middleware
