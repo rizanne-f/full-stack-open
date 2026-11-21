@@ -1,3 +1,5 @@
+require('dotenv').config()
+const Person = require('./models/person')
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
@@ -44,8 +46,11 @@ let persons = [
     }
 ]
 
+// return all persons
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(person => {
+        response.json(person)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -67,6 +72,7 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
+// add new person
 app.post('/api/persons', (request, response) => {
     const body = request.body
     
@@ -85,14 +91,14 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const newPerson = {
+    const newPerson = new Person({
         id: Math.ceil(Math.random() * 1_000_000),
         name: body.name,
         number: body.number
-    }
-
-    persons = persons.concat(newPerson)
-    response.status(201).json(newPerson)
+    })
+    newPerson.save().then(savedPerson => {
+        response.status(201).json(savedPerson)
+    })
 })
 
 app.get('/info', (request, response) => {
