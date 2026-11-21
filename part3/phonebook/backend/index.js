@@ -23,14 +23,14 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time mss :
 }))
 
 // return all persons
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
     Person.find({}).then(person => {
         response.json(person)
-    })
+    }).catch(error => next(error))
 })
 
 // return single person
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id)
         .then(person => {
             if (!person) {
@@ -40,18 +40,19 @@ app.get('/api/persons/:id', (request, response) => {
             }
             response.status(200).json(person)
         })
+        .catch(error => next(error))
 })
 
 // delete a person
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndDelete(request.params.id)
         .then(result => {
             response.status(204).end()
-        })
+        }).catch(error => next(error))
 })
 
 // add new person
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     
     if (!body.name || !body.number) {
@@ -77,10 +78,11 @@ app.post('/api/persons', (request, response) => {
                 response.status(201).json(savedPerson)
             })
         })
+        .catch(error => next(error))
 })
 
 // update person entry
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
     const { name, number } = request.body
 
     Person.findById(request.params.id)
@@ -95,10 +97,11 @@ app.put('/api/persons/:id', (request, response) => {
                 response.json(updatedPerson)
             })
         })
+        .catch(error => next(error))
 })
 
 // return info page
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
     Person.countDocuments({})
         .then(count => {
             const label = count === 1 ? '1 person' : `${count} people`
@@ -106,6 +109,7 @@ app.get('/info', (request, response) => {
                 `<div>Phonebook has info for ${label}</div><div>${new Date()}</div>`
             )
         })
+        .catch(error => next(error))
 })
 
 // error handler middleware
