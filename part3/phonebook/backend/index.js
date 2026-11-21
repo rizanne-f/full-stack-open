@@ -7,12 +7,14 @@ const app = express()
 app.use(express.json())
 app.use(express.static('dist'))
 
+// set middleware for POST requests
 app.use(morgan('tiny', {
     skip: function (request, response) {
         return request.method === 'POST'
     }
 }))
 
+// set middleware for non-POST requests
 morgan.token('body', request => JSON.stringify(request.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time mss :body', {
     skip: function (request, response) {
@@ -50,6 +52,7 @@ app.get('/api/persons', (request, response) => {
     })
 })
 
+// return single person
 app.get('/api/persons/:id', (request, response) => {
     const id = request.params.id
     const person = persons.find(p => p.id === id)
@@ -63,6 +66,7 @@ app.get('/api/persons/:id', (request, response) => {
     response.status(200).json(person)
 })
 
+// delete a person
 app.delete('/api/persons/:id', (request, response) => {
     Person.findByIdAndDelete(request.params.id)
         .then(result => {
@@ -117,6 +121,7 @@ app.put('/api/persons/:id', (request, response) => {
         })
 })
 
+// return info page
 app.get('/info', (request, response) => {
     response.send(`
         <div>Phonebook has info for ${persons.length} people</div>
@@ -137,6 +142,7 @@ const errorHandler = (error, request, response, next) => {
 
 app.use(errorHandler)
 
+// run server on port 3001
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on Port ${PORT}`)
