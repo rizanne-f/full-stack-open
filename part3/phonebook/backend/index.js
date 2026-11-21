@@ -84,23 +84,23 @@ app.post('/api/persons', (request, response) => {
         })
     }
     
-    // const isDuplicate = persons.map(p => p.name.toLowerCase())
-    //     .includes(request.body.name.toLowerCase())
-    
-    // if (isDuplicate) {
-    //     return response.status(409).json({
-    //         error: "Name must be unique"
-    //     })
-    // }
+    Person.findOne({ name: { $regex: `^${body.name.trim()}$`, $options: 'i' } })
+        .then(existingPerson => {
+            if (existingPerson) {
+                return res.status(400).json({
+                    error: "name must be unique."
+                })
+            }
 
-    const newPerson = new Person({
-        id: Math.ceil(Math.random() * 1_000_000),
-        name: body.name,
-        number: body.number
-    })
-    newPerson.save().then(savedPerson => {
-        response.status(201).json(savedPerson)
-    })
+            const newPerson = new Person({
+                id: Math.ceil(Math.random() * 1_000_000),
+                name: body.name,
+                number: body.number
+            })
+            newPerson.save().then(savedPerson => {
+                response.status(201).json(savedPerson)
+            })
+        })
 })
 
 // update person entry
