@@ -31,48 +31,60 @@ const App = () => {
 
   const addPerson = (event) => {
     event.preventDefault()
+    
+    const existing = persons.find(p =>
+      p.name.trim().toLowerCase() === newContact.name.trim().toLowerCase()
+    )
 
-    const existingContact = persons.find(person => person.name === newContact.name)
-    const newObject = { ...existingContact, number: newContact.number }
+    // If name already exists
+    if (existing) {
+      const modified = { ...existing, number: newContact.number.trim() }
 
-    if (persons.map(person => person.name).includes(newContact.name)) {
-      const updatedContact = confirm(
-        `${newContact.name} is already added to phonebook, replace the old number with a new one?`
-      )
-
-      if (updatedContact) {
+      // Ask user to modify number else do nothing
+      if (confirm(
+        `${existing.name} is already added to phonebook, replace the old number with a new one?`
+      )) {
         personsService
-          .update(existingContact.id, newObject).then(updatedPerson => {
-            setPersons(persons.map(
-              person => person.id === existingContact.id
-              ? updatedPerson
-              : person)
-            )
+          .update(existing.id, modified)
+          .then(updated => {
+            setPersons(persons.map(p => p.id === existing.id ? updated : p))
+
+            // Show sucess notification
             setNotif({
-              message: `${existingContact.name} was updated to ${newContact.number}.`,
+              message: `${existing.name} was updated to ${newContact.number}.`,
               isError: false
             })
             clearNotif()
           }).catch(() => {
             setNotif({
-              message: `Information of ${existingContact.name} has already been removed from server.`,
+              message: `Information of ${existing.name} has already been removed from server.`,
               isError: true
             })
             clearNotif()
-            setPersons(persons.filter(p => p.id !== existingContact.id))
+            setPersons(persons.filter(p => p.id !== existing.id))
           })
       }
-    } else {
-      personsService
-        .create(newContact)
-        .then(insertedContact => setPersons(persons.concat(insertedContact)))
 
-      setNotif({
-        message: `Added ${newContact.name}.`,
-        isError: false
-      })
-      clearNotif()
+      setNewContact({name: '', number: ''})
+      return
     }
+
+    // Add a new person object
+    const newPersonObj = { name: newContact.name, number: newContact.number, }
+
+    personsService
+      .create(newPersonObj)
+      .then(newPerson => {
+        setPersons(persons.concat(newPerson))
+        setNewContact({name: '', number: ''})
+
+        // Show notification
+        setNotif({
+          message: `Added ${newPerson.name}`,
+          isError: false
+        })
+        clearNotif()
+      })
 
     setNewContact({name: '', number: ''})
   }
@@ -98,7 +110,7 @@ const App = () => {
       personsService
         .deletePerson(person.id).then(response => {
           setNotif({
-            message: `${response.name} is deleted from server.`,
+            message: `${person.name} is deleted from server.`,
             isError: false
           })
           clearNotif()
