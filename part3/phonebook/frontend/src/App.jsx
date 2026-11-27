@@ -91,6 +91,7 @@ const App = () => {
           message: error.response.data.error,
           isError: true
         })
+        clearNotif()
       })
 
     setNewContact({name: '', number: ''})
