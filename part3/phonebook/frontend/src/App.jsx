@@ -85,6 +85,13 @@ const App = () => {
         })
         clearNotif()
       })
+      .catch(error => {
+        console.log(error.response.data.error)
+        setNotif({
+          message: error.response.data.error,
+          isError: true
+        })
+      })
 
     setNewContact({name: '', number: ''})
   }
