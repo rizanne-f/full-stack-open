@@ -55,13 +55,23 @@ const App = () => {
               isError: false
             })
             clearNotif()
-          }).catch(() => {
-            setNotif({
-              message: `Information of ${existing.name} has already been removed from server.`,
-              isError: true
-            })
-            clearNotif()
-            setPersons(persons.filter(p => p.id !== existing.id))
+          }).catch(error => {
+            const status = error.response?.status
+
+            if (status === 404) {
+              setNotif({
+                message: `Information of ${existing.name} has already been removed from server.`,
+                isError: true
+              })
+              clearNotif()
+              setPersons(persons.filter(p => p.id !== existing.id))
+            } else {
+              setNotif({
+                message: error.response?.data?.error || 'Failed to update contact,',
+                isError: true
+              })
+              clearNotif()
+            }
           })
       }
 
